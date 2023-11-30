@@ -1,14 +1,6 @@
 package com.kal.gamie.presentation
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.EaseIn
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.repeatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,8 +25,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,10 +36,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +50,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kal.gamie.viewmodels.MainViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginPage(
@@ -75,9 +73,12 @@ fun LoginPage(
             var code by remember {
                 mutableStateOf("+91")
             }
-
+            val focus = remember{
+                FocusRequester()
+            }
+            val focusManager = LocalFocusManager.current
             Box(modifier = Modifier
-                .padding(top = 40.dp, bottom = 30.dp)
+                .padding(top = 90.dp, bottom = 30.dp)
                 .border(
                     2.dp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f),
@@ -101,7 +102,7 @@ fun LoginPage(
             Row(
                 modifier = Modifier.padding(bottom = 4.dp)
             ) {
-                OutlinedTextField(value = number,
+                OutlinedTextField(value = number,modifier=Modifier.focusRequester(focus),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     label = { Text(text = "Phone Number", modifier = modifier.alpha(0.4f))},
                     placeholder = { Text(text = "00000 00000")},
@@ -127,6 +128,7 @@ fun LoginPage(
             }
             IconButton(
                 onClick = {
+                    focusManager.clearFocus()
                     onClick(code+number)
                 },
                 enabled = number.length>=10,
@@ -146,9 +148,23 @@ fun LoginPage(
                 Image(painter = painterResource(id = com.kal.gamie.R.drawable.google), contentDescription =null)
             }
         }
-        Text(text = "@GamieTD",
-            Modifier
-                .alpha(0.3f)
-                .padding(vertical = 10.dp))
+        Column (Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+            ){
+            Text(text = "@GamieTD",
+                Modifier
+                    .alpha(0.3f)
+                    .padding(vertical = 10.dp))
+            AnimatedVisibility(visible =viewModel.loginErrorMsg.value!=null ) {
+                Snackbar {
+                    (if(viewModel.loginErrorMsg.value!=null)viewModel.loginErrorMsg.value else "")?.let { Text(text = it) }
+                }
+            }
+            LaunchedEffect(key1 = viewModel.loginErrorMsg.value){
+                delay(3000)
+                viewModel.loginErrorMsg.value=null
+            }
+
+        }
     }
 }

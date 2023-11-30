@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Gamie"
+        android:theme="@style/Theme.Gamie.splash"
         tools:targetApi="31">
         <service
             android:name=".background.FCM"
@@ -25,7 +25,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:resizeableActivity="true"
-            android:theme="@style/Theme.Gamie">
+            android:theme="@style/Theme.Gamie.splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

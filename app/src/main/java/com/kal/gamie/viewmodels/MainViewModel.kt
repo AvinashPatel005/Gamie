@@ -13,43 +13,43 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.kal.gamie.data.User
 
 class MainViewModel : ViewModel() {
     var auth = Firebase.auth
     var uid : MutableState<String> = mutableStateOf("")
+    var user:MutableState<User> = mutableStateOf(User())
+
     var loginProcess : MutableState<Boolean> = mutableStateOf(false)
     var loginProcess2 : MutableState<Int> = mutableIntStateOf(0)
-    var getOtp:MutableState<Boolean> = mutableStateOf(false)
+    var loginErrorMsg : MutableState<String?> = mutableStateOf(null)
+
     var dpUri:MutableState<Uri?> = mutableStateOf(null)
-    var dpV:MutableState<Long> = mutableLongStateOf(0L)
-    var name:MutableState<String> = mutableStateOf("")
     var menu : MutableState<Boolean> = mutableStateOf(false)
     var dpUploading : MutableState<Boolean> = mutableStateOf(false)
     init {
-
+        auth.addAuthStateListener {
+            uid.value=it.currentUser?.uid.toString()
+            getAccount()
+        }
     }
-
-    fun getUser(){
-        com.google.firebase.ktx.Firebase.database.getReference("users/${uid.value}/name").addValueEventListener(object :
-            ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                name.value=if(snapshot.value==null) "" else snapshot.value.toString()
+    private fun getAccount(){
+        if(uid.value!="null" && uid.value!=""){
+            val dataRef = Firebase.database.getReference("users/${uid.value}")
+            val callback = object :ValueEventListener{
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    user.value= snapshot.getValue(User::class.java)!!
+                }
+                override fun onCancelled(error: DatabaseError) {
+                }
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
-        com.google.firebase.ktx.Firebase.database.getReference("users/${uid.value}/dpV").addValueEventListener(object :
-            ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                dpV.value= if(snapshot.value!=null) snapshot.value as Long else 0L
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
+            dataRef.addValueEventListener(callback)
+        }
+        else user.value=User()
+    }
+    fun signOut(){
+        Firebase.auth.signOut()
+        menu.value=false
     }
 
 }
